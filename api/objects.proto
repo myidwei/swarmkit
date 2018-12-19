@@ -85,6 +85,10 @@ message Node {
 	// VXLANUDPPort specifies the UDP port for VXLAN traffic.
 	// This information is passed from cluster object to individual nodes.
 	uint32 VXLANUDPPort = 11;
+	
+	uint64 leftMemory = 12;
+	uint64 leftCpu = 13;
+
 }
 
 message Service {

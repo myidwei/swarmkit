@@ -13,6 +13,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/cpu"
 )
 
 var (
@@ -186,11 +188,15 @@ func (s *session) heartbeat(ctx context.Context) error {
 	for {
 		select {
 		case <-heartbeat.C:
+			v, _ := mem.VirtualMemory()
+			cpu,_  := cpu.Percent(0,false)
 			heartbeatCtx, cancel := context.WithTimeout(ctx, dispatcherRPCTimeout)
 			// TODO(anshul) log manager info in all logs in this function.
 			log.G(ctx).WithFields(fields).Debugf("sending heartbeat to manager %v with timeout %v", s.conn.Peer(), dispatcherRPCTimeout)
 			resp, err := client.Heartbeat(heartbeatCtx, &api.HeartbeatRequest{
 				SessionID: s.sessionID,
+				UsedMemoryPercent: v.UsedPercent,
+				UsedCpuPercent:cpu[0],
 			})
 			cancel()
 			if err != nil {

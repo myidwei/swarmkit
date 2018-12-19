@@ -3,6 +3,7 @@ package scheduler
 import (
 	"context"
 	"time"
+	"fmt"
 
 	"github.com/docker/swarmkit/api"
 	"github.com/docker/swarmkit/api/genericresource"
@@ -638,6 +639,49 @@ func (s *Scheduler) scheduleNTasksOnSubtree(ctx context.Context, n int, taskGrou
 	return tasksScheduled
 }
 
+func (s *Scheduler) findNode(nodes []NodeInfo) string{
+	result := ""
+	minUseage := 10000.0
+	index := 0
+	fmt.Println("------------->>>")
+	for id, value := range s.nodeSet.nodes {
+
+		res := store.GlobalNodeResources[value.ID]
+		if res == nil{
+			continue
+		}
+		v := res.UsedMemoryPercent + res.UsedCpuPercent
+		if res == nil{
+			fmt.Println("Can not find res info for node#",index," id:",value.ID)
+			continue
+		}
+		if minUseage > v {
+			minUseage = v
+			result = value.ID
+		}
+		fmt.Println(id,store.GlobalNodeResources[value.ID])
+	}
+
+	/*
+	for index, value := range nodes {
+		res := store.GlobalNodeResources[value.ID]
+		v := res.UsedMemoryPercent + res.UsedCpuPercent
+		if res == nil{
+			fmt.Println("Can not find res info for node#",index," id:",value.ID)
+			continue
+		}
+		if minUseage > v {
+			minUseage = v
+			result = index
+		}
+		fmt.Println("%d==>%v",index,store.GlobalNodeResources[value.ID])
+	}
+	*/
+	fmt.Println("MinUseage:",minUseage,",NodeID:",result)
+	fmt.Println("<<<-------------")
+	return result
+}
+
 func (s *Scheduler) scheduleNTasksOnNodes(ctx context.Context, n int, taskGroup map[string]*api.Task, nodes []NodeInfo, schedulingDecisions map[string]schedulingDecision, nodeLess func(a *NodeInfo, b *NodeInfo) bool) int {
 	tasksScheduled := 0
 	failedConstraints := make(map[int]bool) // key is index in nodes slice
@@ -650,7 +694,8 @@ func (s *Scheduler) scheduleNTasksOnNodes(ctx context.Context, n int, taskGroup 
 			continue
 		}
 
-		node := &nodes[nodeIter%nodeCount]
+		var nodeId = s.findNode(nodes)
+		node := s.nodeSet.nodes[nodeId]
 
 		log.G(ctx).WithField("task.id", t.ID).Debugf("assigning to node %s", node.ID)
 		newT := *t
@@ -665,7 +710,6 @@ func (s *Scheduler) scheduleNTasksOnNodes(ctx context.Context, n int, taskGroup 
 		nodeInfo, err := s.nodeSet.nodeInfo(node.ID)
 		if err == nil && nodeInfo.addTask(&newT) {
 			s.nodeSet.updateNode(nodeInfo)
-			nodes[nodeIter%nodeCount] = nodeInfo
 		}
 
 		schedulingDecisions[taskID] = schedulingDecision{old: t, new: &newT}
@@ -673,19 +717,6 @@ func (s *Scheduler) scheduleNTasksOnNodes(ctx context.Context, n int, taskGroup 
 		tasksScheduled++
 		if tasksScheduled == n {
 			return tasksScheduled
-		}
-
-		if nodeIter+1 < nodeCount {
-			// First pass fills the nodes until they have the same
-			// number of tasks from this service.
-			nextNode := nodes[(nodeIter+1)%nodeCount]
-			if nodeLess(&nextNode, &nodeInfo) {
-				nodeIter++
-			}
-		} else {
-			// In later passes, we just assign one task at a time
-			// to each node that still meets the constraints.
-			nodeIter++
 		}
 
 		origNodeIter := nodeIter

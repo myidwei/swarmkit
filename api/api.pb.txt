@@ -5767,6 +5767,20 @@ file {
       type: TYPE_UINT32
       json_name: "VXLANUDPPort"
     }
+    field {
+      name: "leftMemory"
+      number: 12
+      label: LABEL_OPTIONAL
+      type: TYPE_UINT64
+      json_name: "leftMemory"
+    }
+    field {
+      name: "leftCpu"
+      number: 13
+      label: LABEL_OPTIONAL
+      type: TYPE_UINT64
+      json_name: "leftCpu"
+    }
     options {
       70001 {
         1 {
@@ -8118,6 +8132,20 @@ file {
       label: LABEL_OPTIONAL
       type: TYPE_STRING
       json_name: "sessionId"
+    }
+    field {
+      name: "usedMemoryPercent"
+      number: 2
+      label: LABEL_OPTIONAL
+      type: TYPE_DOUBLE
+      json_name: "usedMemoryPercent"
+    }
+    field {
+      name: "usedCpuPercent"
+      number: 3
+      label: LABEL_OPTIONAL
+      type: TYPE_DOUBLE
+      json_name: "usedCpuPercent"
     }
   }
   message_type {

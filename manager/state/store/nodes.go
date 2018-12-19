@@ -10,7 +10,15 @@ import (
 
 const tableNode = "node"
 
+type NodeResource struct{
+       UsedMemoryPercent float64
+       UsedCpuPercent float64
+}
+
+var GlobalNodeResources map[string]*NodeResource;
+
 func init() {
+	GlobalNodeResources = make(map[string]*NodeResource)
 	register(ObjectStoreConfig{
 		Table: &memdb.TableSchema{
 			Name: tableNode,

@@ -134,6 +134,8 @@ message SessionMessage {
 // HeartbeatRequest provides identifying properties for a single heartbeat.
 message HeartbeatRequest {
 	string session_id = 1;
+	double usedMemoryPercent = 2;
+	double usedCpuPercent = 3;
 }
 
 message HeartbeatResponse {

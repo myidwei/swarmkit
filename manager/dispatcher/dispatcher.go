@@ -1184,6 +1184,14 @@ func (d *Dispatcher) Heartbeat(ctx context.Context, r *api.HeartbeatRequest) (*a
 		return nil, err
 	}
 
+	var res = &store.NodeResource{
+		r.UsedMemoryPercent,
+		r.UsedCpuPercent,
+	}
+
+	store.GlobalNodeResources[nodeInfo.NodeID]= res;
+
+
 	period, err := d.nodes.Heartbeat(nodeInfo.NodeID, r.SessionID)
 
 	log.G(ctx).WithField("method", "(*Dispatcher).Heartbeat").Debugf("received heartbeat from worker %v, expect next heartbeat in %v", nodeInfo, period)
